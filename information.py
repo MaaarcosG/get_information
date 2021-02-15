@@ -3,6 +3,8 @@ import socket
 import sys 
 import psutil
 import os
+import fcntl
+import struct
 
 def get_size(bytes, suffix="B"):
     pass
@@ -46,6 +48,7 @@ for index, item in enumerate(cpuinfo):
 print(' ')
 print("="*40, "Disk Information", "="*40)
 disk_partitions = psutil.disk_partitions()
+
 for partition in disk_partitions:
     print("[+] Partition Device: %s" % partition.device)
     print("[+] File System: %s" % partition.fstype)
@@ -58,7 +61,20 @@ for partition in disk_partitions:
     print("[+] Used Disk Space %d GB" % bytes_to_gbytes(disk_usage.used))
     print("[+] Percentage Used %d %s" % (disk_usage.percent, '%'))
 
-disk_rw = psutil.disk_io_counters()
-print(f"[+] Total Read since boot : {bytes_to_gbytes(disk_rw.read_bytes)} GB")
-print(f"[+] Total Write sice boot : {bytes_to_gbytes(disk_rw.write_bytes)} GB")
+    if os.geteuid() >  0:
+        print("ERROR: Must be root to use")
+        sys.exit(1)
+
+    with open(partition.device, "rb") as fd:
+        hd_driveid_format_str = "@ 10H 20s 3H 8s 40s 2B H 2B H 4B 6H 2B I 36H I Q 152H"
+        HDIO_GET_IDENTITY = 0x030d
+        sizeof_hd_driveid = struct.calcsize(hd_driveid_format_str)
+
+        assert sizeof_hd_driveid == 512 
+        buf = fcntl.ioctl(fd, HDIO_GET_IDENTITY, " " * sizeof_hd_driveid)
+        fields = struct.unpack(hd_driveid_format_str, buf)
+        serial_no = fields[10].strip()
+        model = fields[15].strip()
+        print("Hard Disk Model: %s" % model)
+        print("Serial Number: %s" % serial_no)
 
