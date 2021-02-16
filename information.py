@@ -40,9 +40,9 @@ def number_CPU():
     print('[+] Processor: %s' % name_processor)
     print('[+] Number of CPUs: %s' % numberCPU)
     print('[+] Number of Physical CPUs: %s' % physical_cpu)
-    print(f'[+] Max Frequency: {frecuency.max:.2f} Mhz')
-    print(f'[+] Min Frequency: {frecuency.min:.2f} Mhz')
-    print(f'[+] Current Frequency: {frecuency.current:.2f} Mhz \n')
+    print(f'[+] Max Frequency: {ghz_mhz(frecuency.max):.2f} Ghz')
+    print(f'[+] Min Frequency: {ghz_mhz(frecuency.min):.2f} Ghz')
+    print(f'[+] Current Frequency: {ghz_mhz(frecuency.current):.2f} Ghz \n')
 
     for i, percentage in enumerate(psutil.cpu_percent(percpu=True, interval=1)):
         print(f"[+] CPU Usage of Core {i}: {percentage}%")
@@ -66,10 +66,12 @@ def gb_bytes(bytes):
     gb = bytes/(1024*1024*1024)
     return round(gb,2)
 
+def ghz_mhz(data):
+    ghz = data/1000
+    return ghz
+
 if __name__ == '__main__':
-    '''
     computer_data()
     getSeialNumber()
     number_CPU()
-    '''
     memory_data()
